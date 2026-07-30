@@ -1,0 +1,40 @@
+syntax = "proto3";
+
+package xray.proxy.naive;
+option csharp_namespace = "Xray.Proxy.Naive";
+option go_package = "github.com/xtls/xray-core/proxy/naive";
+option java_package = "com.xray.proxy.naive";
+option java_multiple_files = true;
+
+import "common/net/address.proto";
+
+message UDPOverTCPConfig {
+  bool enabled = 1;
+  uint32 version = 2;
+}
+
+message ECHConfig {
+  bool enabled = 1;
+  bytes config_list = 2;
+  string query_server_name = 3;
+  string dns_server = 4;
+}
+
+message TLSConfig {
+  string server_name = 1;
+  string trusted_root_certificates = 2;
+  ECHConfig ech = 3;
+}
+
+message ClientConfig {
+  xray.common.net.IPOrDomain address = 1;
+  uint32 port = 2;
+  string username = 3;
+  string password = 4;
+  uint32 insecure_concurrency = 5;
+  map<string, string> extra_headers = 6;
+  UDPOverTCPConfig udp_over_tcp = 7;
+  bool quic = 8;
+  string quic_congestion_control = 9;
+  TLSConfig tls = 10;
+}
