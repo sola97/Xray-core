@@ -75,6 +75,7 @@ func TestNaiveClientConfigRejectsInvalidInput(t *testing.T) {
 	}{
 		{name: "quic concurrency", input: `{"address":"example.com","port":443,"insecureConcurrency":2,"quic":true}`, wantError: "QUIC requires"},
 		{name: "reserved header", input: `{"address":"example.com","port":443,"insecureConcurrency":1,"extraHeaders":{"Padding":"x"}}`, wantError: "reserved"},
+		{name: "reserved host header", input: `{"address":"example.com","port":443,"insecureConcurrency":1,"extraHeaders":{"Host":"front.example.com"}}`, wantError: "reserved"},
 		{name: "invalid uot", input: `{"address":"example.com","port":443,"insecureConcurrency":1,"udpOverTcp":{"enabled":true,"version":3}}`, wantError: "version"},
 	}
 	for _, test := range tests {

@@ -13,8 +13,18 @@ var reservedExtraHeaders = map[string]struct{}{
 	"-connect-authority":     {},
 	"-force-quic":            {},
 	"-network-isolation-key": {},
+	"connection":             {},
+	"content-length":         {},
+	"host":                   {},
+	"keep-alive":             {},
 	"padding":                {},
+	"proxy-authenticate":     {},
 	"proxy-authorization":    {},
+	"proxy-connection":       {},
+	"te":                     {},
+	"trailer":                {},
+	"transfer-encoding":      {},
+	"upgrade":                {},
 }
 
 func ValidateConfig(config *ClientConfig) error {

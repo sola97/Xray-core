@@ -57,6 +57,35 @@ func TestValidateConfig(t *testing.T) {
 	}
 }
 
+func TestValidateConfigRejectsReservedExtraHeaders(t *testing.T) {
+	reservedHeaders := []string{
+		"-Connect-Authority",
+		"-Force-QUIC",
+		"-Network-Isolation-Key",
+		"Connection",
+		"Content-Length",
+		"Host",
+		"Keep-Alive",
+		"Padding",
+		"Proxy-Authenticate",
+		"Proxy-Authorization",
+		"Proxy-Connection",
+		"TE",
+		"Trailer",
+		"Transfer-Encoding",
+		"Upgrade",
+	}
+	for _, header := range reservedHeaders {
+		t.Run(header, func(t *testing.T) {
+			config := validClientConfig()
+			config.ExtraHeaders = map[string]string{header: "value"}
+			if err := ValidateConfig(config); err == nil || !strings.Contains(err.Error(), "reserved") {
+				t.Fatalf("expected %q to be rejected as reserved, got %v", header, err)
+			}
+		})
+	}
+}
+
 func TestNormalizeQUICCongestionControl(t *testing.T) {
 	tests := map[string]string{
 		"":      "",
