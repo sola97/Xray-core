@@ -5,6 +5,7 @@ import (
 	stderrors "errors"
 	stdnet "net"
 	"sync"
+	"time"
 
 	cronet "github.com/sagernet/cronet-go"
 	M "github.com/sagernet/sing/common/metadata"
@@ -44,11 +45,12 @@ type Outbound struct {
 	dnsClient featuredns.Client
 	factory   clientFactory
 
-	initOnce sync.Once
-	initErr  error
-	mu       sync.Mutex
-	client   nativeClient
-	closed   bool
+	initOnce            sync.Once
+	initErr             error
+	mu                  sync.Mutex
+	client              nativeClient
+	closed              bool
+	lastConnectionReset time.Time
 }
 
 var activeOutbounds sync.Map
@@ -191,6 +193,7 @@ func (o *Outbound) Process(ctx context.Context, link *transport.Link, dialer int
 		return err
 	}
 	errors.LogInfo(ctx, "naive: tunneling ", destination.Network.SystemString(), " request to ", destination)
+	connectionDialer := &connectionDialer{client: client, outbound: o, timeout: connectTimeout}
 
 	inbound := session.InboundFromContext(ctx)
 	var inboundConn stdnet.Conn
@@ -199,7 +202,7 @@ func (o *Outbound) Process(ctx context.Context, link *transport.Link, dialer int
 	}
 
 	if destination.Network == xnet.Network_TCP {
-		serverConn, err := client.DialEarly(ctx, singbridge.ToSocksaddr(destination))
+		serverConn, err := connectionDialer.DialContext(ctx, N.NetworkTCP, singbridge.ToSocksaddr(destination))
 		if err != nil {
 			return errors.New("naive: dial TCP target").Base(err)
 		}
@@ -216,7 +219,7 @@ func (o *Outbound) Process(ctx context.Context, link *transport.Link, dialer int
 	if version == 0 {
 		version = uot.Version
 	}
-	serverConn, err := openUoTPacketConn(ctx, client, singbridge.ToSocksaddr(destination), version)
+	serverConn, err := openUoTPacketConn(ctx, connectionDialer, singbridge.ToSocksaddr(destination), version)
 	if err != nil {
 		return errors.New("naive: open UoT v", version, " packet connection").Base(err)
 	}
@@ -224,7 +227,7 @@ func (o *Outbound) Process(ctx context.Context, link *transport.Link, dialer int
 	return singbridge.CopyPacketConn(ctx, inboundConn, link, destination, serverConn)
 }
 
-func openUoTPacketConn(ctx context.Context, client nativeClient, destination M.Socksaddr, version uint32) (stdnet.PacketConn, error) {
+func openUoTPacketConn(ctx context.Context, client N.Dialer, destination M.Socksaddr, version uint32) (stdnet.PacketConn, error) {
 	if version == 0 {
 		version = uot.Version
 	}
