@@ -103,6 +103,8 @@ jobs:
           provenance: false
           outputs: type=image,name=${{ env.FULL_IMAGE_NAME }},push-by-digest=true,name-canonical=true,push=true
 
+        env:
+          DOCKER_BUILD_RECORD_UPLOAD: 'false'
       - name: Build Docker image (additional architectures)
         id: build_additional_arches
         uses: docker/build-push-action@v7
@@ -117,6 +119,8 @@ jobs:
           provenance: false
           outputs: type=image,name=${{ env.FULL_IMAGE_NAME }},push-by-digest=true,name-canonical=true,push=true
 
+        env:
+          DOCKER_BUILD_RECORD_UPLOAD: 'false'
       - name: Create manifest list and push
         run: |
           echo "Creating multi-arch manifest with tag: '${{ env.FULL_IMAGE_NAME }}:${{ env.IMAGE_TAG }}'."
