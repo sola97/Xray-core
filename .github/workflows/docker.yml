@@ -1,20 +1,7 @@
 name: Build and Push Docker Image
 
 on:
-  release:
-    types:
-      - published
-      - released
-
   workflow_dispatch:
-    inputs:
-      tag:
-        description: "Docker image tag:"
-        required: true
-      latest:
-        description: "Set to latest"
-        type: boolean
-        default: false
 
 jobs:
   build-and-push:
